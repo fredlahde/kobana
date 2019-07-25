@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/fredlahde/kobana.svg?branch=master)](https://travis-ci.org/fredlahde/kobana)
+
 # Kobana
 
 Generates a yaml defined chroot environment in a blaze. Build opon alpine.
