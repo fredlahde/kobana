@@ -1,6 +1,6 @@
 # Kobana
 
-Generates a yaml defined chroot environment in a blaze. Buil opon alpine.
+Generates a yaml defined chroot environment in a blaze. Build opon alpine.
 
 ## Note
 
