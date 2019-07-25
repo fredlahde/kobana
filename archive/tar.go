@@ -3,14 +3,13 @@ package archive
 import (
 	"archive/tar"
 	"compress/gzip"
-	"fmt"
 	"github.com/pkg/errors"
 	"io"
 	"os"
 	"path/filepath"
 )
 
-func Unpack(dst string, r io.Read) (uint32, error) {
+func Unpack(dst string, r io.Reader) (uint32, error) {
 	gz, err := gzip.NewReader(r)
 	if err != nil {
 		return 0, err
@@ -36,7 +35,7 @@ func Unpack(dst string, r io.Read) (uint32, error) {
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if err := mkdir(target); target != nil {
+			if err := mkdir(target); err != nil {
 				return numFiles, err
 			}
 		case tar.TypeReg:
