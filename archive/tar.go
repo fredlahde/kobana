@@ -47,14 +47,22 @@ func Unpack(dst string, r io.Reader) (uint32, error) {
 }
 
 func writeFile(target string, header *tar.Header, tr io.Reader) error {
-	f, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE, os.FileMode(header.Mode))
+	_, err := os.Stat(target)
+	var f *os.File
+
+	if os.IsNotExist(err) {
+		f, err = os.Create(target)
+	} else {
+		f, err = os.OpenFile(target, os.O_WRONLY|os.O_CREATE, os.FileMode(header.Mode))
+	}
+
 	// TODO Check for permissions error
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Unable to create file")
 	}
 
 	if _, err := io.Copy(f, tr); err != nil {
-		return err
+		return errors.Wrap(err, "unable to extract file")
 	}
 	return f.Close()
 }
@@ -62,7 +70,7 @@ func writeFile(target string, header *tar.Header, tr io.Reader) error {
 func mkdir(target string) error {
 	_, err := os.Stat(target)
 
-	if os.IsNotExist(err) {
+	if os.IsExist(err) {
 		return nil
 	}
 
@@ -70,7 +78,7 @@ func mkdir(target string) error {
 		return errors.Wrapf(err, "Not allowed to create directory %s, check permissions", target)
 	}
 
-	if err := os.Mkdir(target, 0755); err != nil {
+	if err := os.MkdirAll(target, 0755); err != nil {
 		return errors.Wrapf(err, "Error creating directory %s", target)
 	}
 	return nil
