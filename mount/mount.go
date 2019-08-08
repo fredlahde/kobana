@@ -1,21 +1,15 @@
 package mount
 
 import (
+	names "github.com/docker/docker/pkg/namesgenerator"
 	"github.com/pkg/errors"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"syscall"
-	"time"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 const (
 	MOUNT_BASE   string = "/mnt/kobana"
-	RAND_LEN     int    = 32
 	LETTER_BYTES string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
@@ -44,14 +38,6 @@ func UmountRamFs(base string) error {
 }
 
 func makeMountBaseDir() (string, error) {
-	path := filepath.Join(MOUNT_BASE, randStringBytes(RAND_LEN))
+	path := filepath.Join(MOUNT_BASE, names.GetRandomName(0))
 	return path, os.MkdirAll(path, 0755)
-}
-
-func randStringBytes(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = LETTER_BYTES[rand.Intn(len(LETTER_BYTES))]
-	}
-	return string(b)
 }
