@@ -10,7 +10,11 @@ import (
 	"time"
 )
 
-const ALPINE_URL = "http://dl-cdn.alpinelinux.org/alpine/v3.10/releases/x86_64/alpine-minirootfs-3.10.1-x86_64.tar.gz"
+const (
+	ALPINE_URL  = "http://dl-cdn.alpinelinux.org/alpine/v3.10/releases/x86_64/alpine-minirootfs-3.10.1-x86_64.tar.gz"
+	RESOLV_CONF = "/etc/resolv.conf"
+	HOSTS       = "/etc/hosts"
+)
 
 func SetupChrootEnvironment(base string) error {
 	rootDir := filepath.Join(base, "base")
@@ -46,9 +50,13 @@ func downloadUnpackImage(rootDir string) error {
 }
 
 func setupNetworking(rootDir string) error {
-	_, err := util.Copy("/etc/resolv.conf", filepath.Join(rootDir, "/etc/resolv.conf"))
+	_, err := util.Copy(RESOLV_CONF, filepath.Join(rootDir, RESOLV_CONF))
 	if err != nil {
 		return errors.Wrap(err, "Could not copy resolv.conf into chroot")
+	}
+	_, err = util.Copy(HOSTS, filepath.Join(rootDir, HOSTS))
+	if err != nil {
+		return errors.Wrap(err, "Could not copy hosts into chroot")
 	}
 	return nil
 }
