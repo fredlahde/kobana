@@ -3,9 +3,9 @@ package mount
 import (
 	names "github.com/docker/docker/pkg/namesgenerator"
 	"github.com/pkg/errors"
+	syscall "golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
-	"syscall"
 )
 
 const (
