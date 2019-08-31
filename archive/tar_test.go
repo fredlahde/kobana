@@ -16,7 +16,7 @@ func TestUnpack(t *testing.T) {
 	}
 	numFiles, err := Unpack(unpackDir, tarFile)
 	if err != nil {
-		t.Fatal("Unable to unpack archive", err)
+		t.Fatal(err)
 	}
 	if numFiles != 1 {
 		t.Errorf("Got %d want %d files", numFiles, 1)

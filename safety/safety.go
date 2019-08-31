@@ -5,26 +5,27 @@ package safety
 import "C"
 import (
 	"fmt"
-	"github.com/pkg/errors"
+	"github.com/fredlahde/kobana/errors"
 	osuser "os/user"
 	"strconv"
 )
 
 func DropRootPriviliges(username, groupname string) error {
+	op := errors.Op("safety.DropRootPriviliges")
 	user, err := osuser.Lookup(username)
 	if err != nil {
-		return errors.Wrap(err, "failed to get information about given user")
+		return errors.E(op, errors.IO, err, errors.C("failed to get information about given user"))
 	}
 	uid := user.Uid
 
 	foundGroup, err := osuser.LookupGroup(groupname)
 	if err != nil {
-		return errors.Wrap(err, "failed to get informaton about given group")
+		return errors.E(op, errors.IO, err, errors.C("failed to get informaton about given group"))
 	}
 
 	userGroups, err := user.GroupIds()
 	if err != nil {
-		return errors.Wrap(err, "failed to get informaton about user groups")
+		return errors.E(op, errors.IO, err, errors.C("failed to get informaton about user groups"))
 	}
 
 	found := false
@@ -36,27 +37,27 @@ func DropRootPriviliges(username, groupname string) error {
 	}
 
 	if !found {
-		return fmt.Errorf("user %s is not in group %s", username, groupname)
+		return errors.E(op, errors.Security, fmt.Errorf("user %s is not in group %s", username, groupname))
 	}
 
 	gidNumber, err := strconv.ParseInt(foundGroup.Gid, 10, 32)
 	if err != nil {
-		return errors.Wrap(err, "gid ist not numeric")
+		return errors.E(op, errors.Security, fmt.Errorf("user %s is not in group %s", username, groupname))
 	}
 
 	ret := C.setgid(C.uint(gidNumber))
 	if ret != 0 {
-		return fmt.Errorf("Could not set gid to %d", gidNumber)
+		return errors.E(op, errors.Security, fmt.Errorf("could not set gid to %d", gidNumber))
 	}
 
 	uidNumber, err := strconv.ParseInt(uid, 10, 32)
 	if err != nil {
-		return errors.Wrap(err, "uid ist not numeric")
+		return errors.E(op, errors.Security, err, errors.C("uid ist not numeric"))
 	}
 
 	ret = C.setuid(C.uint(uidNumber))
 	if ret != 0 {
-		return fmt.Errorf("Could not set uid to %d", uidNumber)
+		return errors.E(op, errors.Security, fmt.Errorf("could not set uid to %d", uidNumber))
 	}
 	return nil
 }
