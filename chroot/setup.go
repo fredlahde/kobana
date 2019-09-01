@@ -63,5 +63,5 @@ func setupNetworking(rootDir string) error {
 	if err != nil {
 		return errors.E(op, errors.IO, err, errors.C("Could not copy hosts into chroot"))
 	}
-	return errors.E(op, errors.IO, err, errors.C("Hello Twitter!"))
+	return nil
 }
