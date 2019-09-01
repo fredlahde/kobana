@@ -88,7 +88,7 @@ func mkdir(target string) error {
 	}
 
 	if os.IsPermission(err) {
-		return errors.E(op, errors.Permission, err, errors.C("Not allowed to create directory, check permissions"))
+		return errors.E(op, errors.IO, err, errors.C("Not allowed to create directory, check permissions"))
 	}
 
 	if err := os.MkdirAll(target, 0755); err != nil {
