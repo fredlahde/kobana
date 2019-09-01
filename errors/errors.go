@@ -2,47 +2,31 @@ package errors
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 )
 
 type Op string
 type Kind uint8
 
 const (
-	Other         Kind = iota // Unclassified error.
-	Invalid                   // Invalid operation for this type of item.
-	Permission                // Permission denied.
-	IO                        // External I/O error such as network failure.
-	Exist                     // Item already exists.
-	NotExist                  // Item does not exist.
-	IsDir                     // Item is a directory.
-	NotDir                    // Item is not a directory.
-	NotEmpty                  // Directory not empty.
-	Private                   // Information withheld.
-	Internal                  // Internal error or inconsistency.
-	CannotDecrypt             // No wrapped key for user with read access.
-	Transient                 // A transient error.
-	BrokenLink                // Link target does not exist.
-	Security                  // Security check failed
+	Other    Kind = iota // Unclassified error.
+	Invalid              // Invalid operation for this type of item.
+	IO                   // External I/O error such as network failure.
+	IsDir                // Item is a directory.
+	NotDir               // Item is not a directory.
+	NotEmpty             // Directory not empty.
+	Private              // Information withheld.
+	Internal             // Internal error or inconsistency.
+	Security             // Security check failed
 )
 
-func (k Kind) String() string {
+func (k Kind) HumanReadable() string {
 	switch k {
 	case Other:
 		return "other error"
 	case Invalid:
 		return "invalid operation"
-	case Permission:
-		return "permission denied"
 	case IO:
 		return "I/O error"
-	case Exist:
-		return "item already exists"
-	case NotExist:
-		return "item does not exist"
-	case BrokenLink:
-		return "link target does not exist"
 	case IsDir:
 		return "item is a directory"
 	case NotDir:
@@ -53,10 +37,6 @@ func (k Kind) String() string {
 		return "information withheld"
 	case Internal:
 		return "internal error"
-	case CannotDecrypt:
-		return `no wrapped key for user; owner must "upspin share -fix"`
-	case Transient:
-		return "transient error"
 	case Security:
 		return "Security check failed"
 	}
@@ -65,6 +45,14 @@ func (k Kind) String() string {
 
 type Pair struct {
 	Key, Value interface{}
+}
+
+func (p Pair) Equal(other Pair) bool {
+	if p.Key != other.Key {
+		return false
+	}
+
+	return p.Value == other.Value
 }
 
 const ContextPair string = "context"
@@ -95,18 +83,47 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	var cause string = ""
-	if e.CausedBy != nil {
-		cause = e.CausedBy.Error()
-	} else if e.SErr != "" {
-		cause = e.SErr
-	} else if e.err != nil {
-		cause = e.err.Error()
+	j, err := MarshalJSON(e)
+	if err != nil {
+		panic(err)
 	}
-	return fmt.Sprintf("%s - %s: %v", e.Kind, e.Op, cause)
+	return string(j)
+}
+
+func (e *Error) Equal(other *Error) bool {
+	if e.Op != other.Op {
+		return false
+	}
+
+	if uint8(e.Kind) != uint8(other.Kind) {
+		return false
+	}
+
+	if len(e.Args) != len(other.Args) {
+		return false
+	}
+	for i, v := range e.Args {
+		ov := other.Args[i]
+		if !v.Equal(ov) {
+			return false
+		}
+	}
+
+	if (e.CausedBy == nil && other.CausedBy != nil) || (e.CausedBy != nil && other.CausedBy == nil) {
+		return false
+	}
+	if e.CausedBy != nil {
+		return e.CausedBy.Equal(other.CausedBy)
+	}
+
+	return true
 }
 
 func MarshalJSON(e *Error) ([]byte, error) {
+	if e.CausedBy != nil {
+		e.err = nil
+		e.SErr = ""
+	}
 	if e.err != nil {
 		e.SErr = e.err.Error()
 	}
@@ -134,7 +151,7 @@ func E(op Op, kind Kind, err error, args ...Pair) error {
 	e := &Error{
 		op,
 		kind,
-		kind.String(),
+		kind.HumanReadable(),
 		err,
 		"",
 		args,
@@ -152,16 +169,4 @@ func E(op Op, kind Kind, err error, args ...Pair) error {
 	}
 
 	return e
-}
-
-func Print(err error) {
-	e, ok := err.(*Error)
-	if ok {
-		j, err := MarshalJSON(e)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Fatal(string(j))
-	}
-	log.Fatal("unable to mount ramfs: ", err)
 }
