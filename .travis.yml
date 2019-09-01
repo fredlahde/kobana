@@ -8,4 +8,5 @@ env:
   - GO111MODULE=on
 script:
   - go build
+  - bash test.sh
   #- go test -cpu=1,2 -v -tags integration ./...
