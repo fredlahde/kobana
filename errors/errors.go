@@ -8,15 +8,19 @@ type Op string
 type Kind uint8
 
 const (
-	Other    Kind = iota // Unclassified error.
-	Invalid              // Invalid operation for this type of item.
-	IO                   // External I/O error such as network failure.
-	IsDir                // Item is a directory.
-	NotDir               // Item is not a directory.
-	NotEmpty             // Directory not empty.
-	Private              // Information withheld.
-	Internal             // Internal error or inconsistency.
-	Security             // Security check failed
+	Other       Kind = iota // Unclassified error.
+	Invalid                 // Invalid operation for this type of item.
+	IO                      // External I/O error such as network failure.
+	IsDir                   // Item is a directory.
+	NotDir                  // Item is not a directory.
+	Exists                  // Item exists
+	NotExists               // Item does not exist
+	NotEmpty                // Directory not empty.
+	Private                 // Information withheld.
+	Internal                // Internal error or inconsistency.
+	Security                // Security check failed
+	Permissions             // Not enough permissions
+	Parse                   // Failed to parse
 )
 
 func (k Kind) HumanReadable() string {
@@ -31,6 +35,10 @@ func (k Kind) HumanReadable() string {
 		return "item is a directory"
 	case NotDir:
 		return "item is not a directory"
+	case Exists:
+		return "item exists"
+	case NotExists:
+		return "item does not exist"
 	case NotEmpty:
 		return "directory not empty"
 	case Private:
@@ -39,6 +47,10 @@ func (k Kind) HumanReadable() string {
 		return "internal error"
 	case Security:
 		return "Security check failed"
+	case Permissions:
+		return "not enough permissions"
+	case Parse:
+		return "failed to parse entity"
 	}
 	return "unknown error kind"
 }
