@@ -42,5 +42,10 @@ func ParseConfig(path string) (*Config, error) {
 		return nil, e.E(op, e.Parse, err, e.C("failed to parse config"), e.P("path", path))
 	}
 
+	err = fd.Close()
+	if err != nil {
+		return nil, e.E(op, e.IO, err, e.C("failed to close config fd"), e.P("path", path))
+	}
+
 	return conf, nil
 }
