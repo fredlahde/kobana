@@ -27,11 +27,6 @@ func ParseConfig(path string) (*Config, error) {
 
 	conf := &Config{}
 
-	err = fd.Close()
-	if err != nil {
-		return nil, e.E(op, e.IO, err, e.C("could not close config file handle"), e.P("path", path))
-	}
-
 	bytes, err := ioutil.ReadAll(fd)
 	if err != nil {
 		return nil, e.E(op, e.IO, err, e.C("failed to read config"), e.P("path", path))
