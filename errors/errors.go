@@ -2,6 +2,7 @@ package errors
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 type Op string
@@ -92,6 +93,18 @@ type Error struct {
 	SErr     string `json:"error"`
 	Args     []Pair `json:"args"`
 	CausedBy *Error `json:"cause"`
+}
+
+func (e Error) Unwrap() error {
+	if e.CausedBy != nil {
+		return e.CausedBy
+	}
+
+	if e.err != nil {
+		return e.err
+	}
+
+	return fmt.Errorf(e.SErr)
 }
 
 func (e *Error) Error() string {

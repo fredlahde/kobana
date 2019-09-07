@@ -2,6 +2,7 @@ package errors
 
 import (
 	json2 "encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -43,5 +44,14 @@ func TestMuchError(t *testing.T) {
 	}
 	if !gotErr.Equal(prev) {
 		t.Fatal("Errors do not match")
+	}
+}
+
+func TestUnwrap(t *testing.T) {
+	startErr := fmt.Errorf("first error")
+	wrapped := E("test", IO, startErr)
+
+	if errors.Unwrap(wrapped) != startErr {
+		t.Fatal("errors do not match after unwrapping")
 	}
 }
