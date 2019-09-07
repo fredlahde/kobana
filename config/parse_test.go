@@ -8,19 +8,24 @@ import (
 
 func TestParse(t *testing.T) {
 	in := &Config{
-		BaseImage: "foo.bar/alpine.tar.gz",
+		BaseImage: "http://dl-cdn.alpinelinux.org/alpine/v3.10/releases/x86_64/alpine-minirootfs-3.10.2-x86_64.tar.gz",
+		EnvFile:   []string{".env"},
+		Env:       []string{"FOO=BAR"},
 		InitCommands: []Command{{
 			CommandLine:      "ls /root",
-			Env:              nil,
+			Env:              []string{"GOOS=foo"},
 			WorkingDirectory: "",
 		}, {
 			CommandLine:      "ls/bar",
 			Env:              nil,
 			WorkingDirectory: "",
 		}},
-		Copies: []Copies{{
+		Mappings: []Mapping{{
 			Source:      "/root/foo/bar",
 			Destination: "/etc/systemd/system/",
+		}, {
+			Source:      "$HOME/foo.txt",
+			Destination: "foo.txt",
 		}},
 	}
 
@@ -37,5 +42,11 @@ func TestParse(t *testing.T) {
 
 	if _, err := fd.Write(bytes); err != nil {
 		t.Fatal(err)
+	}
+
+	var out Config
+	yaml.Unmarshal(bytes, &out)
+	if !in.Equal(&out) {
+		t.Fatal("structs do not match")
 	}
 }
