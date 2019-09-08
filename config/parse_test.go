@@ -9,6 +9,7 @@ import (
 func TestParse(t *testing.T) {
 	in := &Config{
 		BaseImage: "http://dl-cdn.alpinelinux.org/alpine/v3.10/releases/x86_64/alpine-minirootfs-3.10.2-x86_64.tar.gz",
+		BaseDir:   "/mnt/kobana",
 		EnvFile:   []string{".env"},
 		Env:       []string{"FOO=BAR"},
 		InitCommands: []Command{{
@@ -35,7 +36,7 @@ func TestParse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fd, err := os.OpenFile("conf.yaml", os.O_RDWR|os.O_CREATE, 0755)
+	fd, err := os.OpenFile("../conf.yaml", os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}

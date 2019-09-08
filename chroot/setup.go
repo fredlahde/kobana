@@ -2,8 +2,10 @@ package chroot
 
 import (
 	"github.com/fredlahde/kobana/archive"
+	"github.com/fredlahde/kobana/config"
 	"github.com/fredlahde/kobana/errors"
 	"github.com/fredlahde/kobana/util"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,16 +13,15 @@ import (
 )
 
 const (
-	ALPINE_URL  = "http://dl-cdn.alpinelinux.org/alpine/v3.10/releases/x86_64/alpine-minirootfs-3.10.1-x86_64.tar.gz"
 	RESOLV_CONF = "/etc/resolv.conf"
 	HOSTS       = "/etc/hosts"
 )
 
-func SetupChrootEnvironment(base string) error {
+func SetupChrootEnvironment(base string, config *config.Config) error {
 	const op = errors.Op("chroot.SetupChrootEnvironment")
 	rootDir := filepath.Join(base, "base")
 
-	if err := downloadUnpackImage(rootDir); err != nil {
+	if err := downloadUnpackImage(rootDir, config); err != nil {
 		return errors.E(op, errors.IO, err, errors.P("baseDir", base))
 	}
 
@@ -31,12 +32,13 @@ func SetupChrootEnvironment(base string) error {
 	return nil
 }
 
-func downloadUnpackImage(rootDir string) error {
+func downloadUnpackImage(rootDir string, config *config.Config) error {
 	const op = errors.Op("chroot.downloadUnpackImage")
 
 	client := http.Client{Timeout: time.Duration(20 * time.Second)}
 
-	resp, err := client.Get(ALPINE_URL)
+	log.Println("Downloading", config.BaseImage)
+	resp, err := client.Get(config.BaseImage)
 	if err != nil {
 		return errors.E(op, errors.IO, err, errors.C("Could not load alpine base"))
 	}

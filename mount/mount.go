@@ -2,20 +2,16 @@ package mount
 
 import (
 	names "github.com/docker/docker/pkg/namesgenerator"
+	"github.com/fredlahde/kobana/config"
 	"github.com/fredlahde/kobana/errors"
 	syscall "golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
 )
 
-const (
-	MOUNT_BASE   string = "/mnt/kobana"
-	LETTER_BYTES string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-)
-
-func MountRamFs() (string, error) {
+func MountRamFs(conf *config.Config) (string, error) {
 	var op = errors.Op("mount.MountRamFs")
-	base, err := makeMountBaseDir()
+	base, err := makeMountBaseDir(conf.BaseDir)
 	if err != nil {
 		return "", errors.E(op, errors.IO, err, errors.C("unable to create mount base"))
 	}
@@ -26,7 +22,7 @@ func MountRamFs() (string, error) {
 	flags = syscall.MS_NOATIME | syscall.MS_SILENT
 	err = syscall.Mount("ramfs", base, "ramfs", flags, options)
 	if err != nil {
-		return "", errors.E(op, errors.IO, err, errors.C("unable to mount ramfs"))
+		return "", errors.E(op, errors.KindFromSyscallErrno(err), err, errors.C("unable to mount ramfs"))
 	}
 	return base, nil
 }
@@ -42,12 +38,12 @@ func UmountRamFs(base string) error {
 	return nil
 }
 
-func makeMountBaseDir() (string, error) {
+func makeMountBaseDir(root string) (string, error) {
 	op := errors.Op("mount.makeMountBaseDir")
 
-	path := filepath.Join(MOUNT_BASE, names.GetRandomName(0))
+	path := filepath.Join(root, names.GetRandomName(0))
 	if err := os.MkdirAll(path, 0755); err != nil {
-		return "", errors.E(op, errors.IO, err, errors.P("mountBaseDir", MOUNT_BASE))
+		return "", errors.E(op, errors.IO, err, errors.P("mountBaseDir", root))
 	}
 	return path, nil
 }

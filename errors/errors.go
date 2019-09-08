@@ -3,6 +3,7 @@ package errors
 import (
 	"encoding/json"
 	"fmt"
+	syscall "golang.org/x/sys/unix"
 )
 
 type Op string
@@ -194,4 +195,19 @@ func E(op Op, kind Kind, err error, args ...Pair) error {
 	}
 
 	return e
+}
+
+func KindFromSyscallErrno(err error) Kind {
+	errno, ok := err.(syscall.Errno)
+	if !ok {
+		return Other
+	}
+
+	switch errno {
+	case syscall.EACCES:
+	case syscall.EPERM:
+		return Permissions
+	}
+
+	return IO
 }
