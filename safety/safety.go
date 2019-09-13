@@ -5,20 +5,23 @@ package safety
 import "C"
 import (
 	"fmt"
+	"github.com/fredlahde/kobana/config"
 	"github.com/fredlahde/kobana/errors"
 	osuser "os/user"
 	"strconv"
 )
 
-func DropRootPriviliges(username, groupname string) error {
+func DropRootPriviliges(config *config.Config) error {
 	op := errors.Op("safety.DropRootPriviliges")
-	user, err := osuser.Lookup(username)
+	userName := config.User.User
+	groupName := config.User.Group
+	user, err := osuser.Lookup(userName)
 	if err != nil {
 		return errors.E(op, errors.IO, err, errors.C("failed to get information about given user"))
 	}
 	uid := user.Uid
 
-	foundGroup, err := osuser.LookupGroup(groupname)
+	foundGroup, err := osuser.LookupGroup(groupName)
 	if err != nil {
 		return errors.E(op, errors.IO, err, errors.C("failed to get informaton about given group"))
 	}
@@ -37,12 +40,12 @@ func DropRootPriviliges(username, groupname string) error {
 	}
 
 	if !found {
-		return errors.E(op, errors.Security, fmt.Errorf("user %s is not in group %s", username, groupname))
+		return errors.E(op, errors.Security, fmt.Errorf("user %s is not in group %s", userName, groupName))
 	}
 
 	gidNumber, err := strconv.ParseInt(foundGroup.Gid, 10, 32)
 	if err != nil {
-		return errors.E(op, errors.Security, fmt.Errorf("user %s is not in group %s", username, groupname))
+		return errors.E(op, errors.Security, fmt.Errorf("user %s is not in group %s", userName, groupName))
 	}
 
 	ret := C.setgid(C.uint(gidNumber))
