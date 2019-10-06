@@ -11,7 +11,7 @@ Build only for linux. No plans for macos yet.
 
 ## How it works
 
-Kobana mounts a ramfs and unpacks a minimal [Alpine](https://alpinelinux.org/) Linux into it. It then chroots into it and ensures the given enrionment
+Kobana mounts a ramfs and unpacks a minimal [Alpine](https://alpinelinux.org/) Linux into it. It then chroots into it and ensures the given environment
 
 ## Requirements
 
